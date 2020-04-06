@@ -1,11 +1,12 @@
 import cv2
 from datetime import datetime
 import pandas
+import os
 
 first_frame = None
 status_list = [None, None]
 times = []
-df = pandas.DataFrame(columns=['Start', 'END'])
+df = pandas.DataFrame(columns=["START", "END"])
 
 video = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
@@ -41,6 +42,7 @@ while True:
 
     status_list.append(status)
 
+    status_list = status_list[-2:]
     # no motion(0) to motion(1)
     if status_list[-1] == 1 and status_list[-2] == 0:
         times.append(datetime.now())
@@ -57,19 +59,28 @@ while True:
 
     if key == ord('q'):
         if status == 1:
-            times.append(times.append(datetime.now()))
+            times.append(datetime.now())
         break
 
 # add time to dataframe using range of 2
 # e.g appends times[0] to start and times[0+1] to end
 # uses range of 2 so goes to 0+2
 # appends time[2] to start and time[2+1]
-
 for i in range(0, len(times), 2):
-    df = df.append({'Start': times[i], 'End': times[i+1]}, ignore_index=True)
+    df = df.append(
+        {"START": times[i], "END": times[i+1]}, ignore_index=True)
+
+
+
+current_time=datetime.now()
+filename = current_time.strftime('%Y-%m-%d-%H-%M-%S')
+path1 = 'csv_files'
+
+if not os.path.exists(path1):
+    os.makedirs(path1)
 
 print('Generating csv')
-df.to_csv('motion_times.csv')
+df.to_csv(os.path.join(path1, str(filename + '.csv')))
 
 video.release()
 cv2.destroyAllWindows()
